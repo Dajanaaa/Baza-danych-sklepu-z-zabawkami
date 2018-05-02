@@ -1,59 +1,72 @@
-CREATE TABLE detale (
-id_faktury NUMBER(5) NOT NULL,
-pozycja NUMBER(5) NOT NULL,
-cena_sprzedarzy NUMBER(5,2) NOT NULL,
-ilosc NUMBER(5) NOT NULL,
-id_produktu NUMBER(5) NOT NULL
+CREATE TABLE detale 
+(
+	id_faktury NUMBER(5) NOT NULL,
+	pozycja NUMBER(5) NOT NULL,
+	cena_sprzedarzy NUMBER(5,2) NOT NULL,
+	ilosc NUMBER(5) NOT NULL,
+	id_produktu NUMBER(5) NOT NULL
 );
+
 ALTER TABLE detale ADD CONSTRAINT detale_pk PRIMARY KEY ( pozycja,id_faktury );
-CREATE TABLE dostawca (
-id_dostawcy NUMBER(5) NOT NULL,
-nazwa_firmy VARCHAR2(40) NOT NULL,
-adres VARCHAR2(40),
-nip NUMBER(9) NOT NULL
+
+CREATE TABLE dostawca 
+(
+		id_dostawcy NUMBER(5) NOT NULL,
+		nazwa_firmy VARCHAR2(40) NOT NULL,
+		adres VARCHAR2(40),
+		nip NUMBER(9) NOT NULL
 );
+
 ALTER TABLE dostawca ADD CONSTRAINT dostawca_pk PRIMARY KEY ( id_dostawcy );
-CREATE TABLE faktura (
-id_faktury NUMBER(5) NOT NULL,
-data_wystawienia DATE NOT NULL,
-wartosc_faktury NUMBER(10,2) NOT NULL,
-id_klienta NUMBER(5) NOT NULL
+
+CREATE TABLE faktura
+(
+	id_faktury NUMBER(5) NOT NULL,
+	data_wystawienia DATE NOT NULL,
+	wartosc_faktury NUMBER(10,2) NOT NULL,
+	id_klienta NUMBER(5) NOT NULL
 );
+
 ALTER TABLE faktura ADD CONSTRAINT faktura_pk PRIMARY KEY ( id_faktury );
-CREATE TABLE klient (
-id_klienta NUMBER(5) NOT NULL,
-imie VARCHAR2(50) NOT NULL,
-nazwisko VARCHAR2(50) NOT NULL,
-adres VARCHAR2(50),
-numer_telefonu NUMBER(10)
+
+CREATE TABLE klient 
+(
+	id_klienta NUMBER(5) NOT NULL,
+	imie VARCHAR2(50) NOT NULL,
+	nazwisko VARCHAR2(50) NOT NULL,
+	adres VARCHAR2(50),
+	numer_telefonu NUMBER(10)
 );
+
 ALTER TABLE klient ADD CONSTRAINT klient_pk PRIMARY KEY ( id_klienta );
-CREATE TABLE produkt (
-id_produktu NUMBER(5) NOT NULL,
-nazwa VARCHAR2(50) NOT NULL,
-cena NUMBER(5,2) NOT NULL,
-id_rodzaju NUMBER(5) NOT NULL,
-id_dostawcy NUMBER(5) NOT NULL,
-ilosc_w_magazynie NUMBER(5) NOT NULL
+
+CREATE TABLE produkt 
+(
+	id_produktu NUMBER(5) NOT NULL,
+	nazwa VARCHAR2(50) NOT NULL,
+	cena NUMBER(5,2) NOT NULL,
+	id_rodzaju NUMBER(5) NOT NULL,
+	id_dostawcy NUMBER(5) NOT NULL,
+	ilosc_w_magazynie NUMBER(5) NOT NULL
 );
 ALTER TABLE produkt ADD CONSTRAINT produkt_pk PRIMARY KEY ( id_produktu );
-CREATE TABLE rodzaj (
-id_rodzaju NUMBER(5) NOT NULL,
-nazwa_rodzaju VARCHAR2(40) NOT NULL,
-przeznaczenie VARCHAR2(40) NOT NULL
+
+CREATE TABLE rodzaj 
+(
+	id_rodzaju NUMBER(5) NOT NULL,
+	nazwa_rodzaju VARCHAR2(40) NOT NULL,
+	przeznaczenie VARCHAR2(40) NOT NULL
 );
+
 ALTER TABLE rodzaj ADD CONSTRAINT rodzaj_pk PRIMARY KEY ( id_rodzaju );
-ALTER TABLE produkt ADD CONSTRAINT dostawca_fk FOREIGN KEY ( id_dostawcy )
-REFERENCES dostawca ( id_dostawcy );
-ALTER TABLE detale ADD CONSTRAINT faktura_fk FOREIGN KEY ( id_faktury )
-REFERENCES faktura ( id_faktury );
-ALTER TABLE faktura ADD CONSTRAINT klient_fk FOREIGN KEY ( id_klienta )
-REFERENCES klient ( id_klienta );
-ALTER TABLE detale ADD CONSTRAINT produkt_fk FOREIGN KEY ( id_produktu )
-REFERENCES produkt ( id_produktu );
-ALTER TABLE produkt ADD CONSTRAINT rodzaj_fk FOREIGN KEY ( id_rodzaju )
-REFERENCES rodzaj ( id_rodzaju );
---Wprowadzanie danych:
+ALTER TABLE produkt ADD CONSTRAINT dostawca_fk FOREIGN KEY ( id_dostawcy ) REFERENCES dostawca ( id_dostawcy );
+ALTER TABLE detale ADD CONSTRAINT faktura_fk FOREIGN KEY ( id_faktury ) REFERENCES faktura ( id_faktury );
+ALTER TABLE faktura ADD CONSTRAINT klient_fk FOREIGN KEY ( id_klienta ) REFERENCES klient ( id_klienta );
+ALTER TABLE detale ADD CONSTRAINT produkt_fk FOREIGN KEY ( id_produktu ) REFERENCES produkt ( id_produktu );
+ALTER TABLE produkt ADD CONSTRAINT rodzaj_fk FOREIGN KEY ( id_rodzaju ) REFERENCES rodzaj ( id_rodzaju );
+
+
+------------------------------------------------Wprowadzanie danych:
 insert into KLIENT values ( 1, 'Dominik' ,'Derski', 'ul.Mickiewcza 2', 145741823);
 insert into KLIENT values ( 2, 'Daria' ,'Chmielewska', 'ul.Rodla 8', 963874123);
 insert into KLIENT values ( 3, 'Kasia' ,'Tkaczyk', 'ul.Pirenejska 55', 456594123);
@@ -91,7 +104,10 @@ insert into PRODUKT values ( 8 , 'Samolot sterowany',115, 5, 4 , 10);
 insert into PRODUKT values ( 9 , 'Karuzelka z pluszakami',95, 6,2 , 30);
 insert into PRODUKT values ( 10 , 'Kotek',25, 4 , 2, 50);
 CREATE SEQUENCE SEG_ID_FAKTURY INCREMENT BY 1 START WITH 1 NOCACHE;
---Tworzenie funkcji:
+
+
+------------------------------------------------Tworzenie funkcji:
+
 create or replace FUNCTION LOSOWANIE_ILOSCI
 (v_min IN integer, v_max IN integer)
 RETURN INTEGER
@@ -139,7 +155,7 @@ set ilosc_w_magazynie =ilosc_w_magazynie + v_ilosc;
 return true;
 end;
 /
---Tworzenie procedur
+------------------------------------------------Tworzenie procedur
 create or replace procedure pr_wstaw_klienta
 (p_id_klienta IN NUMBER, p_imie IN VARCHAR2, p_nazwisko IN VARCHAR2,
 p_adres IN VARCHAR2, p_numer_telefonu NUMERIC )
@@ -149,7 +165,7 @@ INSERT INTO KLIENT( ID_KLIENTA , IMIE, NAZWISKO, ADRES, NUMER_TELEFONU)
 VALUES( p_id_klienta,p_imie,p_nazwisko,p_adres,p_numer_telefonu);
 END pr_wstaw_klienta;
 /
---Generator
+------------------------------------------------Generator transakcji
 create or replace procedure generowanie_transakcji
 as
 poz number;
@@ -224,7 +240,9 @@ begin
 dbms_scheduler.run_job('GENEROWANIE_DANYCH');
 end;
 /
---Triggery:
+
+
+------------------------------------------------Triggery:
 create or replace TRIGGER "TR_D_DETALE" after delete on detale
 for each row
 begin
@@ -247,7 +265,7 @@ update produkt
 set ILOSC_W_MAGAZYNIE= ILOSC_W_MAGAZYNIE- :new.ilosc
 where :new.id_produktu = Produkt.Id_produktu ;
 end;
---Perspektywy:
+------------------------------------------------Perspektywy:
 /
 CREATE OR REPLACE VIEW DOSTEPNE_PRODUKTY AS
 SELECT P.ID_PRODUKTU, P.NAZWA, P.CENA, P.ILOSC_W_MAGAZYNIE, R.NAZWA_RODZAJU,
